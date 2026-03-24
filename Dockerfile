@@ -20,8 +20,10 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Environment variables for build
-ENV NEXT_TELEMETRY_DISABLED 1
-ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+# Prisma 7 needs a valid URL during build for Next.js static optimization
+ENV DATABASE_URL="file:./dev.db"
 
 RUN npm run build
 
@@ -29,8 +31,8 @@ RUN npm run build
 FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -51,7 +53,7 @@ ENV DATABASE_URL="file:/app/data/dev.db"
 USER nextjs
 
 EXPOSE 3000
-ENV PORT 3000
+ENV PORT=3000
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["node", "server.js"]
