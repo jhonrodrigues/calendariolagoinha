@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import DashboardShell from "@/components/dashboard-shell";
 import EventModal from "@/components/event-modal";
@@ -7,7 +5,7 @@ import CalendarPDFExport from "@/components/calendar-pdf-export";
 import { DayPicker } from "react-day-picker";
 import { ptBR } from "date-fns/locale";
 import { format, startOfMonth, endOfMonth, isSameDay, parseISO } from "date-fns";
-import { Plus, Filter, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { Plus, Filter, ChevronLeft, ChevronRight, Download, Edit, Trash2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import "react-day-picker/dist/style.css";
 
@@ -18,6 +16,8 @@ interface Event {
   startTime?: string;
   endTime?: string;
   location?: string;
+  isRecurring?: boolean;
+  recurrenceRule?: string;
   requirements: { ministry: { id: string, name: string } }[];
 }
 
@@ -35,6 +35,7 @@ export default function CalendarPage() {
   const [selectedMinistry, setSelectedMinistry] = useState<string>("");
   const [selectedDay, setSelectedDay] = useState<Date | undefined>(new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [eventToEdit, setEventToEdit] = useState<Event | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -62,22 +63,53 @@ export default function CalendarPage() {
     if (user) fetchData();
   }, [selectedMinistry, user]);
 
-  const handleSaveEvent = async (eventData: any) => {
+  const handleSaveEvent = async (eventData: any, editMode: string) => {
     try {
-      const resp = await fetch("/api/events", {
-        method: "POST",
-        body: JSON.stringify(eventData),
+      const isEdit = !!eventData.id;
+      const method = isEdit ? "PUT" : "POST";
+      const url = isEdit ? `/api/events/${eventData.id}` : "/api/events";
+      
+      const payload = isEdit ? { ...eventData, editMode } : eventData;
+
+      const resp = await fetch(url, {
+        method,
+        body: JSON.stringify(payload),
         headers: { "Content-Type": "application/json" },
       });
       if (resp.ok) {
         fetchData();
         setIsModalOpen(false);
+        setEventToEdit(null);
       } else {
         alert("Erro ao salvar evento");
       }
     } catch (err) {
       console.error(err);
       alert("Erro ao salvar evento");
+    }
+  };
+
+  const handleDeleteEvent = async (event: Event) => {
+    let mode = "single";
+    if (event.isRecurring) {
+      if (confirm("Este evento faz parte de uma série. Você deseja excluir TODOS os eventos desta série? (Cancele para excluir apenas este dia)")) {
+        mode = "series";
+      } else {
+        if (!confirm("Tem certeza que deseja excluir este único evento?")) return;
+      }
+    } else {
+      if (!confirm("Tem certeza que deseja excluir o evento?")) return;
+    }
+
+    try {
+      const resp = await fetch(`/api/events/${event.id}?mode=${mode}`, { method: "DELETE" });
+      if (resp.ok) {
+        fetchData();
+      } else {
+        alert("Erro ao excluir evento");
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -106,7 +138,7 @@ export default function CalendarPage() {
           <p>Visualize e gerencie as escalas da igreja</p>
         </div>
         {isAdmin && (
-          <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
+          <button className="btn btn-primary" onClick={() => { setEventToEdit(null); setIsModalOpen(true); }}>
             <Plus size={20} />
             <span>Novo Evento</span>
           </button>
@@ -165,22 +197,30 @@ export default function CalendarPage() {
               <p>Carregando eventos...</p>
             ) : selectedDayEvents.length > 0 ? (
               selectedDayEvents.map(event => (
-                <div key={event.id} className="event-item premium-card">
-                  <div className="event-time">
-                    <span className="start">{event.startTime || "--:--"}</span>
-                    {event.endTime && <span className="end">{event.endTime}</span>}
-                  </div>
-                  <div className="event-details">
-                    <h3>{event.title}</h3>
-                    <p className="location">{event.location}</p>
-                    <div className="ministry-tags">
-                      {event.requirements.map(req => (
-                        <span key={req.ministry.id} className="ministry-tag">
-                          {req.ministry.name}
-                        </span>
-                      ))}
+                <div key={event.id} className="event-item premium-card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ display: "flex", gap: "1.5rem", flex: 1 }}>
+                    <div className="event-time">
+                      <span className="start">{event.startTime || "--:--"}</span>
+                      {event.endTime && <span className="end">{event.endTime}</span>}
+                    </div>
+                    <div className="event-details" style={{ flex: 1 }}>
+                      <h3>{event.title} {event.isRecurring && <span style={{fontSize: "0.7rem", color: "#f59e0b", background: "#fef3c7", padding: "2px 6px", borderRadius: "8px", marginLeft: "4px"}}>SÉRIE</span>}</h3>
+                      <p className="location">{event.location}</p>
+                      <div className="ministry-tags">
+                        {event.requirements.map(req => (
+                          <span key={req.ministry.id} className="ministry-tag">
+                            {req.ministry.name}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
+                  {isAdmin && (
+                    <div className="event-actions" style={{ display: "flex", gap: "0.5rem" }}>
+                      <button className="btn-icon edit" onClick={() => { setEventToEdit(event); setIsModalOpen(true); }}><Edit size={18} /></button>
+                      <button className="btn-icon delete" onClick={() => handleDeleteEvent(event)}><Trash2 size={18} /></button>
+                    </div>
+                  )}
                 </div>
               ))
             ) : (
@@ -194,12 +234,12 @@ export default function CalendarPage() {
 
       <EventModal 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+        onClose={() => { setIsModalOpen(false); setEventToEdit(null); }} 
         onSave={handleSaveEvent}
         ministries={ministries}
         initialDate={selectedDay}
+        eventToEdit={eventToEdit}
       />
-
     </DashboardShell>
   );
 }

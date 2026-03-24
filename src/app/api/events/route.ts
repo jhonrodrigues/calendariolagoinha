@@ -47,9 +47,13 @@ export async function POST(req: NextRequest) {
 
     const baseDate = parseISO(date);
     const eventsToCreate = [];
+    
+    // Generate a group ID for recurring events to allow series editing
+    const isRecurringSeries = recurrence && recurrence.type !== "none";
+    const groupId = isRecurringSeries ? Math.random().toString(36).substring(2, 10) : null;
 
     // Recurrence logic: multiplication of events
-    if (recurrence && recurrence.type !== "none") {
+    if (isRecurringSeries) {
       const count = recurrence.count || 10; // Default to 10 instances if not specified
       for (let i = 0; i < count; i++) {
         let eventDate = baseDate;
@@ -68,6 +72,8 @@ export async function POST(req: NextRequest) {
           location,
           responsible,
           isRecurring: true,
+          groupId,
+          recurrenceRule: recurrence.type
         });
       }
     } else {
@@ -80,6 +86,7 @@ export async function POST(req: NextRequest) {
         location,
         responsible,
         isRecurring: false,
+        groupId: null,
       });
     }
 

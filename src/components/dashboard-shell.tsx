@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { LayoutDashboard, Calendar, Users, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, Settings, LogOut, Database } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 
 interface DashboardShellProps {
@@ -37,10 +37,16 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                 <span>Ministérios</span>
               </Link>
               {user.role === "ADMIN_MASTER" && (
-                <Link href="/dashboard/users" className="nav-item">
-                  <Settings size={20} />
-                  <span>Usuários</span>
-                </Link>
+                <>
+                  <Link href="/dashboard/users" className="nav-item">
+                    <Settings size={20} />
+                    <span>Usuários</span>
+                  </Link>
+                  <Link href="/dashboard/backup" className="nav-item">
+                    <Database size={20} />
+                    <span>Backup</span>
+                  </Link>
+                </>
               )}
             </>
           )}

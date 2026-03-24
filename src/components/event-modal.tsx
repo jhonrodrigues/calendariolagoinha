@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import Select from "react-select";
 import { X, Calendar as CalendarIcon, Clock, MapPin, User as UserIcon } from "lucide-react";
@@ -13,15 +13,16 @@ interface Ministry {
 interface EventModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (eventData: any) => void;
+  onSave: (eventData: any, editMode: string) => void;
   ministries: Ministry[];
   initialDate?: Date;
+  eventToEdit?: any;
 }
 
-export default function EventModal({ isOpen, onClose, onSave, ministries, initialDate }: EventModalProps) {
+export default function EventModal({ isOpen, onClose, onSave, ministries, initialDate, eventToEdit }: EventModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [date, setDate] = useState(initialDate ? initialDate.toISOString().split("T")[0] : "");
+  const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [location, setLocation] = useState("");
@@ -29,12 +30,46 @@ export default function EventModal({ isOpen, onClose, onSave, ministries, initia
   const [selectedMinistries, setSelectedMinistries] = useState<any[]>([]);
   const [recurrence, setRecurrence] = useState("none");
   const [recurrenceCount, setRecurrenceCount] = useState(10);
+  const [editMode, setEditMode] = useState("single");
+
+  useEffect(() => {
+    if (isOpen) {
+      if (eventToEdit) {
+        setTitle(eventToEdit.title);
+        setDescription(eventToEdit.description || "");
+        setDate(eventToEdit.date ? eventToEdit.date.split("T")[0] : "");
+        setStartTime(eventToEdit.startTime || "");
+        setEndTime(eventToEdit.endTime || "");
+        setLocation(eventToEdit.location || "");
+        setResponsible(eventToEdit.responsible || "");
+        setRecurrence(eventToEdit.recurrenceRule || "none");
+        
+        if (eventToEdit.requirements) {
+          setSelectedMinistries(eventToEdit.requirements.map((r: any) => ({
+            value: r.ministry.id,
+            label: r.ministry.name
+          })));
+        }
+      } else {
+        setTitle("");
+        setDescription("");
+        setDate(initialDate ? initialDate.toISOString().split("T")[0] : "");
+        setStartTime("");
+        setEndTime("");
+        setLocation("");
+        setResponsible("");
+        setSelectedMinistries([]);
+        setRecurrence("none");
+      }
+    }
+  }, [isOpen, eventToEdit, initialDate]);
 
   const ministryOptions = ministries.map(m => ({ value: m.id, label: m.name }));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave({
+      id: eventToEdit?.id,
       title,
       description,
       date,
@@ -43,8 +78,9 @@ export default function EventModal({ isOpen, onClose, onSave, ministries, initia
       location,
       responsible,
       ministryIds: selectedMinistries.map(m => m.value),
-      recurrence: { type: recurrence, count: recurrenceCount }
-    });
+      recurrence: { type: recurrence, count: recurrenceCount },
+      recurrenceRule: recurrence,
+    }, editMode);
   };
 
   return (
@@ -53,7 +89,7 @@ export default function EventModal({ isOpen, onClose, onSave, ministries, initia
         <Dialog.Overlay className="modal-overlay" />
         <Dialog.Content className="modal-content wide">
           <div className="modal-header">
-            <Dialog.Title>Criar Novo Evento</Dialog.Title>
+            <Dialog.Title>{eventToEdit ? "Editar Evento" : "Criar Novo Evento"}</Dialog.Title>
             <Dialog.Close asChild>
               <button className="btn-close"><X size={20} /></button>
             </Dialog.Close>
@@ -99,6 +135,16 @@ export default function EventModal({ isOpen, onClose, onSave, ministries, initia
             </div>
 
             <div className="form-sidebar">
+              {eventToEdit && eventToEdit.isRecurring && (
+                <div className="form-group" style={{ background: "#fef3c7", padding: "1rem", borderRadius: "8px", border: "1px solid #f59e0b" }}>
+                  <label style={{ color: "#b45309" }}>Opções de Edição (Evento Recorrente)</label>
+                  <select className="input" value={editMode} onChange={e => setEditMode(e.target.value)}>
+                    <option value="single">Editar apenas este dia</option>
+                    <option value="series">Editar este e todos os futuros</option>
+                  </select>
+                </div>
+              )}
+
               <div className="form-group">
                 <label>Ministérios Necessários</label>
                 <Select
@@ -112,16 +158,18 @@ export default function EventModal({ isOpen, onClose, onSave, ministries, initia
                 />
               </div>
 
-              <div className="form-group">
-                <label>Recorrência (Multiplicar Evento)</label>
-                <select className="input" value={recurrence} onChange={e => setRecurrence(e.target.value)}>
-                  <option value="none">Nenhuma</option>
-                  <option value="weekly">Semanal</option>
-                  <option value="monthly">Mensal</option>
-                </select>
-              </div>
+              {!eventToEdit && (
+                <div className="form-group">
+                  <label>Recorrência (Multiplicar Evento)</label>
+                  <select className="input" value={recurrence} onChange={e => setRecurrence(e.target.value)}>
+                    <option value="none">Nenhuma</option>
+                    <option value="weekly">Semanal</option>
+                    <option value="monthly">Mensal</option>
+                  </select>
+                </div>
+              )}
 
-              {recurrence !== "none" && (
+              {recurrence !== "none" && !eventToEdit && (
                 <div className="form-group">
                   <label>Quantidade de Repetições</label>
                   <input type="number" className="input" value={recurrenceCount} onChange={e => setRecurrenceCount(Number(e.target.value))} min={1} max={52} />
@@ -131,7 +179,7 @@ export default function EventModal({ isOpen, onClose, onSave, ministries, initia
 
             <div className="modal-actions">
               <button type="button" className="btn btn-outline" onClick={onClose}>Cancelar</button>
-              <button type="submit" className="btn btn-primary">Salvar Evento</button>
+              <button type="submit" className="btn btn-primary">{eventToEdit ? "Salvar Alterações" : "Salvar Evento"}</button>
             </div>
           </form>
         </Dialog.Content>

@@ -35,6 +35,7 @@ model Event {
   endTime         String?
   location        String?
   responsible     String?
+  groupId         String?  // Used to tie recurring events together
   recurrenceRule  String?  // Optional: RRULE string
   isRecurring     Boolean  @default(false)
   
