@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import DashboardShell from "@/components/dashboard-shell";
 import EventModal from "@/components/event-modal";
