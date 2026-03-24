@@ -7,8 +7,9 @@ import CalendarPDFExport from "@/components/calendar-pdf-export";
 import { DayPicker } from "react-day-picker";
 import { ptBR } from "date-fns/locale";
 import { format, startOfMonth, endOfMonth, isSameDay, parseISO } from "date-fns";
-import { Plus, Filter, ChevronLeft, ChevronRight, Download, Edit, Trash2 } from "lucide-react";
+import { Plus, Filter, ChevronLeft, ChevronRight, Download, Edit, Trash2, X } from "lucide-react";
 import { useSession } from "next-auth/react";
+import * as Dialog from "@radix-ui/react-dialog";
 import "react-day-picker/dist/style.css";
 
 interface Event {
@@ -18,6 +19,8 @@ interface Event {
   startTime?: string;
   endTime?: string;
   location?: string;
+  minister?: string;
+  worship?: string;
   isRecurring?: boolean;
   recurrenceRule?: string;
   requirements: { ministry: { id: string, name: string } }[];
@@ -39,6 +42,8 @@ export default function CalendarPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState<Event | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportMonth, setExportMonth] = useState<string>(format(new Date(), "yyyy-MM"));
   const [loading, setLoading] = useState(true);
 
   const isAdmin = user?.role !== "LEADER";
@@ -145,16 +150,48 @@ export default function CalendarPage() {
             <span>Novo Evento</span>
           </button>
         )}
-        <button className="btn btn-outline" onClick={() => setIsExporting(true)}>
+        <button className="btn btn-outline" onClick={() => setIsExportModalOpen(true)}>
           <Download size={20} />
           <span>Exportar PDF</span>
         </button>
       </header>
 
+      {/* Exporter UI Box */}
+      <Dialog.Root open={isExportModalOpen} onOpenChange={setIsExportModalOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="modal-overlay" />
+          <Dialog.Content className="modal-content" style={{maxWidth: "400px"}}>
+            <div className="modal-header">
+              <Dialog.Title>Exportar Calendário</Dialog.Title>
+              <Dialog.Close asChild>
+                <button className="btn-close"><X size={20} /></button>
+              </Dialog.Close>
+            </div>
+            <div className="form-group" style={{marginBottom: "2rem"}}>
+              <label>Escolha o mês para exportar:</label>
+              <input 
+                type="month" 
+                className="input" 
+                value={exportMonth} 
+                onChange={(e) => setExportMonth(e.target.value)} 
+                style={{marginTop: "0.5rem"}}
+              />
+            </div>
+            <div className="modal-actions">
+              <button type="button" className="btn btn-outline" onClick={() => setIsExportModalOpen(false)}>Cancelar</button>
+              <button type="button" className="btn btn-primary" onClick={() => {
+                setIsExportModalOpen(false);
+                setIsExporting(true);
+              }}>Gerar PDF</button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
       {isExporting && (
         <CalendarPDFExport 
           events={events} 
-          month={selectedDay || new Date()} 
+          month={new Date(exportMonth + "-02T12:00:00Z")} 
           onComplete={() => setIsExporting(false)} 
         />
       )}
@@ -208,6 +245,14 @@ export default function CalendarPage() {
                     <div className="event-details" style={{ flex: 1 }}>
                       <h3>{event.title} {event.isRecurring && <span style={{fontSize: "0.7rem", color: "#f59e0b", background: "#fef3c7", padding: "2px 6px", borderRadius: "8px", marginLeft: "4px"}}>SÉRIE</span>}</h3>
                       <p className="location">{event.location}</p>
+                      
+                      {(event.minister || event.worship) && (
+                        <div style={{ fontSize: "0.875rem", color: "var(--secondary)", margin: "0.5rem 0", display: "flex", gap: "1.5rem" }}>
+                          {event.minister && <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>📖 Palavra: <strong>{event.minister}</strong></span>}
+                          {event.worship && <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>🎵 Louvor: <strong>{event.worship}</strong></span>}
+                        </div>
+                      )}
+
                       <div className="ministry-tags">
                         {event.requirements.map(req => (
                           <span key={req.ministry.id} className="ministry-tag">

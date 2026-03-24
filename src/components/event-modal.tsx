@@ -27,6 +27,8 @@ export default function EventModal({ isOpen, onClose, onSave, ministries, initia
   const [endTime, setEndTime] = useState("");
   const [location, setLocation] = useState("");
   const [responsible, setResponsible] = useState("");
+  const [minister, setMinister] = useState("");
+  const [worship, setWorship] = useState("");
   const [selectedMinistries, setSelectedMinistries] = useState<any[]>([]);
   const [recurrence, setRecurrence] = useState("none");
   const [recurrenceCount, setRecurrenceCount] = useState(10);
@@ -42,6 +44,8 @@ export default function EventModal({ isOpen, onClose, onSave, ministries, initia
         setEndTime(eventToEdit.endTime || "");
         setLocation(eventToEdit.location || "");
         setResponsible(eventToEdit.responsible || "");
+        setMinister(eventToEdit.minister || "");
+        setWorship(eventToEdit.worship || "");
         setRecurrence(eventToEdit.recurrenceRule || "none");
         
         if (eventToEdit.requirements) {
@@ -58,6 +62,8 @@ export default function EventModal({ isOpen, onClose, onSave, ministries, initia
         setEndTime("");
         setLocation("");
         setResponsible("");
+        setMinister("");
+        setWorship("");
         setSelectedMinistries([]);
         setRecurrence("none");
       }
@@ -77,6 +83,8 @@ export default function EventModal({ isOpen, onClose, onSave, ministries, initia
       endTime,
       location,
       responsible,
+      minister,
+      worship,
       ministryIds: selectedMinistries.map(m => m.value),
       recurrence: { type: recurrence, count: recurrenceCount },
       recurrenceRule: recurrence,

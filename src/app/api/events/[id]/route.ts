@@ -12,13 +12,17 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   try {
     const body = await req.json();
-    const { editMode, title, description, location, startTime, endTime, responsible, ministryIds, date, recurrenceRule } = body;
+    const { editMode, title, description, location, startTime, endTime, responsible, minister, worship, ministryIds, date, recurrenceRule } = body;
 
     const baseEvent = await prisma.event.findUnique({ where: { id } });
     if (!baseEvent) return new NextResponse("Not Found", { status: 404 });
 
+    // Anchor the date to Noon UTC to prevent timezone offsets from shifting the day backwards
+    const baseDateString = date.includes("T") ? date.split("T")[0] : date;
+    const safeDate = new Date(`${baseDateString}T12:00:00Z`);
+
     const updatedData = {
-      title, description, location, startTime, endTime, responsible, recurrenceRule
+      title, description, location, startTime, endTime, responsible, minister, worship, recurrenceRule
     };
 
     if (editMode === "series" && baseEvent.groupId) {
@@ -36,7 +40,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       where: { id },
       data: {
         ...updatedData,
-        date: new Date(date),
+        date: safeDate,
         requirements: {
           deleteMany: {},
           create: ministryIds.map((mId: string) => ({ ministryId: mId }))
