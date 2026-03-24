@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useRef } from "react";
 import DashboardShell from "@/components/dashboard-shell";
 import { useSession } from "next-auth/react";
