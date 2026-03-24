@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { LayoutDashboard, Calendar, Users, Settings, LogOut, Database } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, Settings, LogOut, Database, Menu, X } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 
 interface DashboardShellProps {
@@ -9,6 +9,8 @@ interface DashboardShellProps {
 
 export default function DashboardShell({ children }: DashboardShellProps) {
   const { data: session } = useSession();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
   const user = session?.user as any;
   const isAdmin = user?.role === "ADMIN_MASTER" || user?.role === "ADMIN";
 
@@ -16,10 +18,22 @@ export default function DashboardShell({ children }: DashboardShellProps) {
 
   return (
     <div className="dashboard-shell">
-      <aside className="sidebar">
+      {/* Mobile Header */}
+      <div className="mobile-header">
+        <h2 style={{ color: 'white', margin: 0, fontSize: '1.25rem' }}>Lagoinha</h2>
+        <button className="btn-icon" onClick={() => setIsMobileOpen(!isMobileOpen)} style={{ color: 'white', background: 'rgba(255,255,255,0.1)' }}>
+          {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* Mobile Overlay */}
+      {isMobileOpen && <div className="mobile-overlay" onClick={() => setIsMobileOpen(false)} />}
+
+      <aside className={`sidebar ${isMobileOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <h2>Lagoinha</h2>
         </div>
+
         
         <nav className="sidebar-nav">
           <Link href="/dashboard" className="nav-item">
