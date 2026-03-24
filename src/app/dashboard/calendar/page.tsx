@@ -200,32 +200,6 @@ export default function CalendarPage() {
         initialDate={selectedDay}
       />
 
-      <style jsx>{`
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .calendar-layout { display: grid; grid-template-columns: 350px 1fr; gap: 2rem; }
-        .calendar-sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
-        .filter-card h3 { display: flex; align-items: center; gap: 0.5rem; font-size: 1rem; margin-bottom: 1rem; }
-        .calendar-card { padding: 1rem !important; display: flex; justify-content: center; }
-        .events-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
-        .events-header h2 { text-transform: capitalize; }
-        .events-header span { color: var(--secondary); font-size: 0.875rem; }
-        .events-list { display: flex; flex-direction: column; gap: 1rem; }
-        .event-item { display: flex; gap: 1.5rem; padding: 1.25rem !important; transition: transform 0.2s; }
-        .event-time { display: flex; flex-direction: column; min-width: 60px; font-weight: 700; color: var(--accent); }
-        .event-time .end { font-size: 0.75rem; color: var(--secondary); font-weight: 400; }
-        .event-details h3 { font-size: 1.125rem; margin-bottom: 0.25rem; }
-        .event-details .location { font-size: 0.875rem; color: var(--secondary); margin-bottom: 0.75rem; }
-        .ministry-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-        .ministry-tag { background: #eff6ff; color: #2563eb; padding: 0.25rem 0.625rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
-        .empty-state { padding: 3rem; text-align: center; color: var(--secondary); background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius); }
-        
-        :global(.custom-datepicker) { margin: 0; }
-        :global(.rdp-day_selected) { background-color: var(--accent) !important; color: white !important; }
-        
-        @media (max-width: 1024px) {
-          .calendar-layout { grid-template-columns: 1fr; }
-        }
-      `}</style>
     </DashboardShell>
   );
 }

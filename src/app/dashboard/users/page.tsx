@@ -224,36 +224,6 @@ export default function UsersPage() {
         </Dialog.Portal>
       </Dialog.Root>
 
-      <style jsx>{`
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .page-header p { color: var(--secondary); }
-        .controls { margin-bottom: 2rem; }
-        .search-bar { display: flex; align-items: center; gap: 0.75rem; background: white; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: var(--radius); max-width: 400px; }
-        .search-bar input { border: none; outline: none; width: 100%; font: inherit; }
-        
-        .users-table-container { overflow-x: auto; padding: 0 !important; }
-        .users-table { width: 100%; border-collapse: collapse; text-align: left; }
-        .users-table th { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); background: #f8fafc; color: var(--secondary); font-weight: 600; font-size: 0.875rem; }
-        .users-table td { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); }
-        .users-table tr:last-child td { border-bottom: none; }
-        
-        .role-badge { padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
-        .role-admin_master { background: #fee2e2; color: #b91c1c; }
-        .role-admin { background: #fef3c7; color: #b45309; }
-        .role-leader { background: #eff6ff; color: #1d4ed8; }
-        
-        .btn-icon { padding: 0.5rem; border-radius: 6px; transition: background 0.2s; }
-        .btn-icon.delete:hover { background: #fef2f2; color: #ef4444; }
-        
-        .modal-overlay { background: rgba(0,0,0,0.5); position: fixed; inset: 0; animation: fadeIn 0.2s; }
-        .modal-content { background: white; border-radius: var(--radius); position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90vw; max-width: 450px; padding: 2rem; animation: scaleIn 0.2s; }
-        .form-group { margin-bottom: 1.25rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem; }
-        .modal-actions { margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem; }
-        
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes scaleIn { from { transform: translate(-50%, -50%) scale(0.9); } to { transform: translate(-50%, -50%) scale(1); } }
-      `}</style>
     </DashboardShell>
   );
 }

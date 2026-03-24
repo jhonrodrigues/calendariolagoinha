@@ -78,59 +78,6 @@ export default function LoginPage() {
         </form>
       </div>
 
-      <style jsx>{`
-        .login-container {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 100vh;
-          padding: 1rem;
-          background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        }
-        .login-card {
-          width: 100%;
-          max-width: 400px;
-          padding: 2.5rem;
-        }
-        .login-header {
-          text-align: center;
-          margin-bottom: 2rem;
-        }
-        .login-header h1 {
-          margin-bottom: 0.5rem;
-          font-size: 1.875rem;
-        }
-        .login-header p {
-          color: var(--secondary);
-          font-size: 0.875rem;
-        }
-        .login-form {
-          display: flex;
-          flex-direction: column;
-          gap: 1.25rem;
-        }
-        .form-group {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-        .form-group label {
-          font-size: 0.875rem;
-          font-weight: 500;
-        }
-        .error-message {
-          padding: 0.75rem;
-          background: #fef2f2;
-          border: 1px solid #fee2e2;
-          color: #b91c1c;
-          border-radius: var(--radius);
-          font-size: 0.875rem;
-        }
-        .btn {
-          margin-top: 1rem;
-          width: 100%;
-        }
-      `}</style>
     </div>
   );
 }

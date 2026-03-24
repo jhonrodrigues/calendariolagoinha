@@ -137,26 +137,6 @@ export default function EventModal({ isOpen, onClose, onSave, ministries, initia
         </Dialog.Content>
       </Dialog.Portal>
 
-      <style jsx>{`
-        .modal-overlay { background: rgba(0,0,0,0.5); position: fixed; inset: 0; z-index: 100; }
-        .modal-content.wide { 
-          background: white; border-radius: var(--radius); position: fixed; top: 50%; left: 50%; 
-          transform: translate(-50%, -50%); width: 90vw; max-width: 800px; padding: 2rem; z-index: 101;
-        }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .event-form { display: grid; grid-template-columns: 1fr 280px; gap: 2rem; }
-        .form-main { display: flex; flex-direction: column; gap: 1.5rem; }
-        .form-sidebar { background: #f8fafc; padding: 1.5rem; border-radius: var(--radius); display: flex; flex-direction: column; gap: 1.5rem; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
-        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-        .form-group label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500; color: var(--secondary); }
-        .modal-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 1rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
-        
-        @media (max-width: 768px) {
-          .event-form { grid-template-columns: 1fr; }
-          .form-row { grid-template-columns: 1fr; }
-        }
-      `}</style>
     </Dialog.Root>
   );
 }
