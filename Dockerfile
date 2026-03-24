@@ -4,14 +4,16 @@ FROM node:20-alpine AS base
 
 # Dependencies stage
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma/
 
 RUN npm ci
-RUN npx prisma generate
+RUN npx prisma@5.22.0 generate \
+    --schema=prisma/schema.prisma \
+    --engine-type=library
 
 # Rebuild stage
 FROM base AS builder
