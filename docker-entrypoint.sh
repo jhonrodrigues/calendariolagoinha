@@ -7,6 +7,8 @@ echo "Database URL: $DATABASE_URL"
 # Run migrations
 echo "Running Prisma migrations..."
 npx prisma@5.22.0 migrate deploy
+echo "Seeding database..."
+npx prisma@5.22.0 db seed
 
 echo "Prisma migrations completed successfully."
 
