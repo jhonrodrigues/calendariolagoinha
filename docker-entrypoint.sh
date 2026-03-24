@@ -6,7 +6,7 @@ echo "Database URL: $DATABASE_URL"
 
 # Run migrations
 echo "Running Prisma migrations..."
-npx prisma migrate deploy
+npx prisma@5.22.0 migrate deploy
 
 echo "Prisma migrations completed successfully."
 
