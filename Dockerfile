@@ -11,9 +11,7 @@ COPY package.json package-lock.json* ./
 COPY prisma ./prisma/
 
 RUN npm ci
-RUN npx prisma@5.22.0 generate \
-    --schema=prisma/schema.prisma \
-    --engine-type=library
+RUN npx prisma@5.22.0 generate --schema=prisma/schema.prisma
 
 # Rebuild stage
 FROM base AS builder
