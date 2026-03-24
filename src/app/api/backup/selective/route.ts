@@ -54,8 +54,8 @@ export async function POST(req: NextRequest) {
         for (const m of importData.ministries) {
           await tx.ministry.upsert({
             where: { id: m.id },
-            create: { id: m.id, name: m.name, description: m.description },
-            update: { name: m.name, description: m.description }
+            create: { id: m.id, name: m.name },
+            update: { name: m.name }
           });
         }
       }
