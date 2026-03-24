@@ -42,7 +42,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/docker-entrypoint.sh ./
 
 # Set permissions for SQLite database directory
-RUN mkdir -p /app/data && chown -nextjs:nodejs /app/data
+RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
 VOLUME /app/data
 
 # Prisma expects the database at a specific path
