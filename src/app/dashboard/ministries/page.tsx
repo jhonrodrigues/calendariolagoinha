@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import DashboardShell from "@/components/dashboard-shell";
 import { Plus, Edit, Trash2, Search } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
+import { useSession } from "next-auth/react";
 
 interface Ministry {
   id: string;
@@ -11,6 +12,9 @@ interface Ministry {
 }
 
 export default function MinistriesPage() {
+  const { data: session } = useSession();
+  const user = session?.user as any;
+
   const [ministries, setMinistries] = useState<Ministry[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,15 +22,12 @@ export default function MinistriesPage() {
   const [newName, setNewName] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // Mock user for now - will be replaced by actual session
-  const user = { name: "Admin Master", role: "ADMIN_MASTER" as const };
-
   const fetchMinistries = async () => {
     setLoading(true);
     try {
       const resp = await fetch("/api/ministries");
       const data = await resp.json();
-      setMinistries(data);
+      setMinistries(data || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -35,8 +36,8 @@ export default function MinistriesPage() {
   };
 
   useEffect(() => {
-    fetchMinistries();
-  }, []);
+    if (user) fetchMinistries();
+  }, [user]);
 
   const handleSave = async () => {
     if (!newName) return;
@@ -54,6 +55,8 @@ export default function MinistriesPage() {
         setIsModalOpen(false);
         setNewName("");
         setCurrentMinistry(null);
+      } else {
+        alert("Erro ao salvar ministério. Sem permissão.");
       }
     } catch (err) {
       console.error(err);
@@ -63,8 +66,12 @@ export default function MinistriesPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Tem certeza que deseja excluir este ministério?")) return;
     try {
-      await fetch(`/api/ministries/${id}`, { method: "DELETE" });
-      fetchMinistries();
+      const resp = await fetch(`/api/ministries/${id}`, { method: "DELETE" });
+      if (resp.ok) {
+        fetchMinistries();
+      } else {
+        alert("Erro ao excluir.");
+      }
     } catch (err) {
       console.error(err);
     }
@@ -74,8 +81,11 @@ export default function MinistriesPage() {
     m.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  if (!user) return <div className="p-8">Carregando painel...</div>;
+  if (user.role === "LEADER") return <div className="p-8">Acesso Negado</div>;
+
   return (
-    <DashboardShell user={user}>
+    <DashboardShell>
       <header className="page-header">
         <div>
           <h1>Gestão de Ministérios</h1>

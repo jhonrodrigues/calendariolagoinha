@@ -8,6 +8,7 @@ import { DayPicker } from "react-day-picker";
 import { ptBR } from "date-fns/locale";
 import { format, startOfMonth, endOfMonth, isSameDay, parseISO } from "date-fns";
 import { Plus, Filter, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { useSession } from "next-auth/react";
 import "react-day-picker/dist/style.css";
 
 interface Event {
@@ -26,6 +27,9 @@ interface Ministry {
 }
 
 export default function CalendarPage() {
+  const { data: session } = useSession();
+  const user = session?.user as any;
+  
   const [events, setEvents] = useState<Event[]>([]);
   const [ministries, setMinistries] = useState<Ministry[]>([]);
   const [selectedMinistry, setSelectedMinistry] = useState<string>("");
@@ -34,21 +38,19 @@ export default function CalendarPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Mock user - to be replaced by actual session
-  const user = { name: "Admin Master", role: "ADMIN_MASTER" as const };
-  const isAdmin = (user.role as string) !== "LEADER";
+  const isAdmin = user?.role !== "LEADER";
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const ministriesResp = await fetch("/api/ministries");
       const ministriesData = await ministriesResp.json();
-      setMinistries(ministriesData);
+      setMinistries(ministriesData || []);
 
       const eventsUrl = selectedMinistry ? `/api/events?ministryId=${selectedMinistry}` : "/api/events";
       const eventsResp = await fetch(eventsUrl);
       const eventsData = await eventsResp.json();
-      setEvents(eventsData);
+      setEvents(eventsData || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -57,8 +59,8 @@ export default function CalendarPage() {
   };
 
   useEffect(() => {
-    fetchData();
-  }, [selectedMinistry]);
+    if (user) fetchData();
+  }, [selectedMinistry, user]);
 
   const handleSaveEvent = async (eventData: any) => {
     try {
@@ -70,9 +72,12 @@ export default function CalendarPage() {
       if (resp.ok) {
         fetchData();
         setIsModalOpen(false);
+      } else {
+        alert("Erro ao salvar evento");
       }
     } catch (err) {
       console.error(err);
+      alert("Erro ao salvar evento");
     }
   };
 
@@ -91,8 +96,10 @@ export default function CalendarPage() {
     }
   };
 
+  if (!user) return <div className="p-8">Carregando painel...</div>;
+
   return (
-    <DashboardShell user={user}>
+    <DashboardShell>
       <header className="page-header">
         <div>
           <h1>Calendário de Eventos</h1>

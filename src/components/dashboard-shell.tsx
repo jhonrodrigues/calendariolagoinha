@@ -1,17 +1,18 @@
 import React from "react";
 import Link from "next/link";
 import { LayoutDashboard, Calendar, Users, Settings, LogOut } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
 
 interface DashboardShellProps {
   children: React.ReactNode;
-  user: {
-    name: string;
-    role: "ADMIN_MASTER" | "ADMIN" | "LEADER";
-  };
 }
 
-export default function DashboardShell({ children, user }: DashboardShellProps) {
-  const isAdmin = user.role === "ADMIN_MASTER" || user.role === "ADMIN";
+export default function DashboardShell({ children }: DashboardShellProps) {
+  const { data: session } = useSession();
+  const user = session?.user as any;
+  const isAdmin = user?.role === "ADMIN_MASTER" || user?.role === "ADMIN";
+
+  if (!user) return <div className="p-8">Carregando painel...</div>;
 
   return (
     <div className="dashboard-shell">
@@ -50,7 +51,7 @@ export default function DashboardShell({ children, user }: DashboardShellProps) 
             <p className="user-name">{user.name}</p>
             <p className="user-role">{user.role}</p>
           </div>
-          <button className="btn-logout">
+          <button className="btn-logout" onClick={() => signOut({ callbackUrl: "/login" })}>
             <LogOut size={20} />
             <span>Sair</span>
           </button>
