@@ -58,6 +58,7 @@ export default function CalendarPDFExport({ events, month, onComplete }: PDFExpo
   const startDate = startOfWeek(monthStart, { locale: ptBR });
   const endDate = endOfWeek(monthEnd, { locale: ptBR });
   const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
+  const numWeeks = Math.ceil(calendarDays.length / 7);
 
   return (
     <div style={{ position: "fixed", left: "-9999px", top: 0 }}>
@@ -99,7 +100,7 @@ export default function CalendarPDFExport({ events, month, onComplete }: PDFExpo
             
             return (
               <div key={i} style={{ 
-                height: "35mm", 
+                height: numWeeks > 5 ? "21mm" : "25mm", 
                 border: "1pt solid #000", 
                 padding: "1mm",
                 background: isSameMonth(date, monthStart) ? "white" : "#fbfbfb",

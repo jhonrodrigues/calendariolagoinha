@@ -50,7 +50,7 @@ export default function DashboardPage() {
 
       <div className="upcoming-feed premium-card">
         <h2 style={{ marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <Clock size={20} color="var(--accent)" /> Próximas Escalas
+          <Clock size={20} color="var(--accent)" /> Próximos Eventos
         </h2>
         
         {loading ? (

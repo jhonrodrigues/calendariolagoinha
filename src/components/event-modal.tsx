@@ -165,7 +165,10 @@ export default function EventModal({ isOpen, onClose, onSave, ministries, initia
               )}
 
               <div className="form-group">
-                <label>Ministérios Necessários</label>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <label>Ministérios Necessários</label>
+                  <button type="button" onClick={() => setSelectedMinistries(ministryOptions)} style={{ fontSize: "0.75rem", color: "var(--accent)", background: "transparent", border: "none", cursor: "pointer", fontWeight: 600 }}>Selecionar Todos</button>
+                </div>
                 <Select
                   isMulti
                   options={ministryOptions}

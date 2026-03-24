@@ -26,13 +26,26 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     };
 
     if (editMode === "series" && baseEvent.groupId) {
-      // Update all events in the series from this date forward
-      await prisma.event.updateMany({
-        where: { groupId: baseEvent.groupId, date: { gte: baseEvent.date } },
-        data: updatedData,
+      // Find all future events in the series
+      const futureEvents = await prisma.event.findMany({
+        where: { groupId: baseEvent.groupId, date: { gte: baseEvent.date } }
       });
-      // Updating relationships directly on many isn't supported, so update them individually if we wanted ministry changes on all.
-      // For simplicity, we just return. Real "Edit Series" recreate the future series.
+
+      // Update them one by one to ensure Ministry Relationships are synchronized
+      await prisma.$transaction(
+        futureEvents.map((fe: any) => prisma.event.update({
+          where: { id: fe.id },
+          data: {
+            ...updatedData,
+            requirements: {
+              deleteMany: {},
+              create: ministryIds.map((mId: string) => ({ ministryId: mId }))
+            }
+          }
+        }))
+      );
+      
+      return NextResponse.json(futureEvents[0]);
     }
 
     // Always update the specific single event and its relations
