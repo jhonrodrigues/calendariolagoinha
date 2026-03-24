@@ -136,6 +136,17 @@ export default function EventModal({ isOpen, onClose, onSave, ministries, initia
                 </div>
               </div>
 
+              <div className="form-row">
+                <div className="form-group">
+                  <label>📖 Ministração</label>
+                  <input className="input" value={minister} onChange={e => setMinister(e.target.value)} placeholder="Quem vai pregar?" />
+                </div>
+                <div className="form-group">
+                  <label>🎵 Louvor</label>
+                  <input className="input" value={worship} onChange={e => setWorship(e.target.value)} placeholder="Quem vai cantar?" />
+                </div>
+              </div>
+
               <div className="form-group">
                 <label>Descrição</label>
                 <textarea className="input" value={description} onChange={e => setDescription(e.target.value)} rows={3} />

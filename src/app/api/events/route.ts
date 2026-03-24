@@ -42,10 +42,12 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { 
       title, description, date, startTime, endTime, 
-      location, responsible, ministryIds, recurrence 
+      location, responsible, minister, worship, ministryIds, recurrence 
     } = body;
 
-    const baseDate = parseISO(date);
+    // Anchor the date to Noon UTC to prevent timezone offsets from shifting the day backwards
+    const baseDateString = date.includes("T") ? date.split("T")[0] : date;
+    const baseDate = new Date(`${baseDateString}T12:00:00Z`);
     const eventsToCreate = [];
     
     // Generate a group ID for recurring events to allow series editing
@@ -71,6 +73,8 @@ export async function POST(req: NextRequest) {
           endTime,
           location,
           responsible,
+          minister,
+          worship,
           isRecurring: true,
           groupId,
           recurrenceRule: recurrence.type
@@ -85,6 +89,8 @@ export async function POST(req: NextRequest) {
         endTime,
         location,
         responsible,
+        minister,
+        worship,
         isRecurring: false,
         groupId: null,
       });
