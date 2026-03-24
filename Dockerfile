@@ -22,8 +22,11 @@ COPY . .
 # Environment variables for build
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
-# Prisma 7 needs a valid URL during build for Next.js static optimization
+# Prisma needs a valid URL during build
 ENV DATABASE_URL="file:./dev.db"
+
+# Generate Prisma Client in builder stage with correct targets
+RUN npx prisma@5.22.0 generate --schema=prisma/schema.prisma
 
 RUN npm run build
 
@@ -33,6 +36,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV AUTH_TRUST_HOST=true
 
 RUN apk add --no-cache libc6-compat openssl
 
