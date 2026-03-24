@@ -5,6 +5,7 @@ import { compare } from "bcryptjs";
 
 // Note: I'll need to install bcryptjs
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "fallback_secret_for_development_only",
   providers: [
     Credentials({
       name: "Credentials",
