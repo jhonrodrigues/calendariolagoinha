@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
-  if (!session || (session.user as any).role !== "ADMIN_MASTER") {
+  if (!session || !["ADMIN_MASTER", "ADMIN"].includes((session.user as any).role)) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
@@ -18,6 +18,10 @@ export async function GET(req: NextRequest) {
         name: true,
         email: true,
         role: true,
+        ministryId: true,
+        ministry: {
+          select: { id: true, name: true }
+        }
       }
     });
     return NextResponse.json(users);
@@ -28,14 +32,18 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: Request) {
   const session = await auth();
-  if (!session || (session.user as any).role !== "ADMIN_MASTER") {
+  if (!session || !["ADMIN_MASTER", "ADMIN"].includes((session.user as any).role)) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
   try {
-    const { name, email, password, role } = await req.json();
+    const { name, email, password, role, ministryId } = await req.json();
     if (!name || !email || !password || !role) {
       return new NextResponse("Missing fields", { status: 400 });
+    }
+
+    if ((session.user as any).role !== "ADMIN_MASTER" && role === "ADMIN_MASTER") {
+      return new NextResponse("Unauthorized", { status: 401 });
     }
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -46,8 +54,14 @@ export async function POST(req: Request) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword, role },
-      select: { id: true, name: true, email: true, role: true }
+      data: { 
+        name, 
+        email, 
+        password: hashedPassword, 
+        role,
+        ...(ministryId && { ministryId })
+      },
+      select: { id: true, name: true, email: true, role: true, ministryId: true }
     });
     
     return NextResponse.json(user);

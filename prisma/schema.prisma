@@ -9,21 +9,25 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String?
-  email     String   @unique
-  password  String
-  role      String   @default("LEADER") // ADMIN_MASTER, ADMIN, LEADER
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String             @id @default(cuid())
+  name          String?
+  email         String             @unique
+  password      String
+  role          String             @default("LEADER") // ADMIN_MASTER, ADMIN, LEADER
+  ministryId    String?
+  ministry      Ministry?          @relation(fields: [ministryId], references: [id])
+  reservations  SpaceReservation[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 }
 
 model Ministry {
-  id        String   @id @default(cuid())
-  name      String   @unique
+  id           String             @id @default(cuid())
+  name         String             @unique
   requirements EventRequirement[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  users        User[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
 }
 
 model Event {
@@ -70,4 +74,29 @@ model PlatformSettings {
   pdfTitleAlign   String @default("center") 
   
   updatedAt       DateTime @updatedAt
+}
+
+model Space {
+  id            String             @id @default(cuid())
+  name          String
+  description   String?
+  reservations  SpaceReservation[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+}
+
+model SpaceReservation {
+  id          String   @id @default(cuid())
+  spaceId     String
+  space       Space    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        String   
+  startTime   String
+  endTime     String
+  title       String   
+  status      String   @default("PENDING") 
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { LayoutDashboard, Calendar, Users, Settings, LogOut, Database, Menu, X, Palette, Key } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, Settings, LogOut, Database, Menu, X, Palette, Key, Bookmark, MapPin } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import * as Dialog from "@radix-ui/react-dialog";
 
@@ -90,17 +90,25 @@ export default function DashboardShell({ children }: DashboardShellProps) {
             <Calendar size={20} />
             <span>Calendário</span>
           </Link>
+          <Link href="/dashboard/reservations" className="nav-item">
+            <Bookmark size={20} />
+            <span>Reservas de Espaço</span>
+          </Link>
           {isAdmin && (
             <>
               <Link href="/dashboard/ministries" className="nav-item">
                 <Users size={20} />
                 <span>Ministérios</span>
               </Link>
+              <Link href="/dashboard/spaces" className="nav-item">
+                <MapPin size={20} />
+                <span>Espaços Físicos</span>
+              </Link>
               {user.role === "ADMIN_MASTER" && (
                 <>
                   <Link href="/dashboard/users" className="nav-item">
                     <Settings size={20} />
-                    <span>Usuários</span>
+                    <span>Equipe / Sistema</span>
                   </Link>
                   <Link href="/dashboard/backup" className="nav-item">
                     <Database size={20} />
