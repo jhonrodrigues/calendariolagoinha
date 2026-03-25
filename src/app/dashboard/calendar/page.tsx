@@ -133,7 +133,9 @@ export default function CalendarPage() {
     setIsExporting(true);
   };
 
-  const selectedDayEvents = events.filter(e => isSameDay(parseISO(e.date), selectedDay || new Date()));
+  const selectedDayEvents = events
+    .filter(e => isSameDay(parseISO(e.date), selectedDay || new Date()))
+    .sort((a, b) => (a.startTime || "00:00").localeCompare(b.startTime || "00:00"));
 
   const modifiers = {
     hasEvent: events.map(e => parseISO(e.date))

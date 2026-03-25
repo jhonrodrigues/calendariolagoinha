@@ -129,7 +129,9 @@ export default function CalendarPDFExport({ events, months, onComplete }: PDFExp
               ))}
 
               {calendarDays.map((date, i) => {
-                const dayEvents = events.filter(e => format(parseISO(e.date), "yyyy-MM-dd") === format(date, "yyyy-MM-dd"));
+                const dayEvents = events
+                  .filter(e => format(parseISO(e.date), "yyyy-MM-dd") === format(date, "yyyy-MM-dd"))
+                  .sort((a, b) => (a.startTime || "00:00").localeCompare(b.startTime || "00:00"));
                 
                 return (
                   <div key={i} style={{ 

@@ -24,7 +24,10 @@ export async function GET(req: NextRequest) {
           include: { ministry: true }
         }
       },
-      orderBy: { date: "asc" },
+      orderBy: [
+        { date: "asc" },
+        { startTime: "asc" }
+      ],
     });
     return NextResponse.json(events);
   } catch (error) {
