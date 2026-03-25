@@ -6,7 +6,7 @@ echo "Database URL: $DATABASE_URL"
 
 # Force SQLite schema synchronization natively into the database volume
 echo "Syncing Prisma schema natively..."
-npx prisma@5.22.0 db push --accept-data-loss
+npx prisma@5.22.0 db push --accept-data-loss --skip-generate
 echo "Seeding database..."
 npx prisma@5.22.0 db seed
 
