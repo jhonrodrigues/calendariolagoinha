@@ -212,7 +212,7 @@ export default function ReservationsPage() {
                           </button>
                         </>
                       )}
-                      {(r.userId === currentUser.id || isAdmin) && r.status !== "APPROVED" && (
+                      {(r.userId === currentUser.id || isAdmin) && (r.status !== "APPROVED" || isAdmin) && (
                         <button onClick={() => handleDelete(r.id)} className="btn-icon delete" title="Excluir/Cancelar">
                           <X size={18} />
                         </button>
