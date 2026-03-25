@@ -6,9 +6,9 @@ echo "Database URL: $DATABASE_URL"
 
 # Force SQLite schema synchronization natively into the database volume
 echo "Syncing Prisma schema natively..."
-npx prisma@5.22.0 db push --accept-data-loss --skip-generate
+node node_modules/prisma/build/index.js db push --accept-data-loss --skip-generate
 echo "Seeding database..."
-npx prisma@5.22.0 db seed
+node node_modules/prisma/build/index.js db seed
 
 echo "Prisma migrations completed successfully."
 
