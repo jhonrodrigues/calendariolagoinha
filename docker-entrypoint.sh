@@ -4,9 +4,9 @@ set -e
 echo "Starting Church Platform Deployment..."
 echo "Database URL: $DATABASE_URL"
 
-# Run migrations
-echo "Running Prisma migrations..."
-npx prisma@5.22.0 migrate deploy
+# Force SQLite schema synchronization natively into the database volume
+echo "Syncing Prisma schema natively..."
+npx prisma@5.22.0 db push --accept-data-loss
 echo "Seeding database..."
 npx prisma@5.22.0 db seed
 
