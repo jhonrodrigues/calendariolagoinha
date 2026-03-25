@@ -125,7 +125,10 @@ export default function DashboardShell({ children }: DashboardShellProps) {
             <button className="btn-outline" style={{ flex: 1, padding: "0.5rem", display: "flex", justifyContent: "center", alignItems: "center", gap: "0.5rem", borderRadius: "8px", border: "1px solid #cbd5e1", cursor: "pointer", background: "white" }} onClick={() => setIsPasswordModalOpen(true)}>
               <Key size={16} /> <span style={{fontSize: "0.75rem", fontWeight: "bold", color: "#333"}}>Senha</span>
             </button>
-            <button className="btn-logout" style={{ flex: 1, padding: "0.5rem", marginTop: 0 }} onClick={() => signOut({ callbackUrl: "/login" })}>
+            <button className="btn-logout" style={{ flex: 1, padding: "0.5rem", marginTop: 0 }} onClick={async () => {
+              await signOut({ redirect: false });
+              window.location.href = "/login";
+            }}>
               <LogOut size={16} /> <span>Sair</span>
             </button>
           </div>
