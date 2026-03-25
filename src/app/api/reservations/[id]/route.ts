@@ -11,10 +11,17 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params;
 
   try {
-    const { status } = await req.json();
+    const data = await req.json();
     const res = await prisma.spaceReservation.update({ 
       where: { id }, 
-      data: { status } 
+      data: {
+        ...(data.status && { status: data.status }),
+        ...(data.spaceId && { spaceId: data.spaceId }),
+        ...(data.date && { date: data.date }),
+        ...(data.startTime && { startTime: data.startTime }),
+        ...(data.endTime && { endTime: data.endTime }),
+        ...(data.title && { title: data.title }),
+      } 
     });
     return NextResponse.json(res);
   } catch (error) {

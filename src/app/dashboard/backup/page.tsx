@@ -14,6 +14,8 @@ export default function BackupPage() {
   const [exportEvents, setExportEvents] = useState(true);
   const [exportMinistries, setExportMinistries] = useState(true);
   const [exportUsers, setExportUsers] = useState(true);
+  const [exportSpaces, setExportSpaces] = useState(true);
+  const [exportReservations, setExportReservations] = useState(true);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -27,7 +29,7 @@ export default function BackupPage() {
     }
     setDownloading(true);
     try {
-      const resp = await fetch(`/api/backup/selective?events=${exportEvents}&ministries=${exportMinistries}&users=${exportUsers}`);
+      const resp = await fetch(`/api/backup/selective?events=${exportEvents}&ministries=${exportMinistries}&users=${exportUsers}&spaces=${exportSpaces}&reservations=${exportReservations}`);
       if (!resp.ok) throw new Error("Falha na exportação");
       const data = await resp.json();
       
@@ -118,6 +120,8 @@ export default function BackupPage() {
           <ToggleBox label="Escalas e Calendário" state={exportEvents} setter={setExportEvents} />
           <ToggleBox label="Lista de Ministérios" state={exportMinistries} setter={setExportMinistries} />
           <ToggleBox label="Usuários (Exceto Master)" state={exportUsers} setter={setExportUsers} />
+          <ToggleBox label="Espaços Físicos" state={exportSpaces} setter={setExportSpaces} />
+          <ToggleBox label="Reservas de Espaço" state={exportReservations} setter={setExportReservations} />
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem", width: "100%", maxWidth: "320px", marginTop: "2rem" }}>

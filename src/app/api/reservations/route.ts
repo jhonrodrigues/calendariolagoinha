@@ -74,7 +74,8 @@ export async function POST(req: NextRequest) {
       data: { spaceId, userId: user.id, date, startTime, endTime, title, status: "PENDING" } 
     });
     return NextResponse.json(res);
-  } catch (error) {
-    return new NextResponse("Internal Error", { status: 500 });
+  } catch (error: any) {
+    console.error("Reservation Error:", error);
+    return NextResponse.json({ error: `Erro no Servidor: ${error.message}` }, { status: 500 });
   }
 }

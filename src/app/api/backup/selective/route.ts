@@ -12,6 +12,8 @@ export async function GET(req: NextRequest) {
   const includeEvents = searchParams.get("events") === "true";
   const includeMinistries = searchParams.get("ministries") === "true";
   const includeUsers = searchParams.get("users") === "true";
+  const includeSpaces = searchParams.get("spaces") === "true";
+  const includeReservations = searchParams.get("reservations") === "true";
 
   try {
     const backupData: any = {};
@@ -28,8 +30,16 @@ export async function GET(req: NextRequest) {
 
     if (includeUsers) {
       backupData.users = await prisma.user.findMany({
-        where: { email: { not: "admin@lagoinha.com" } } // Preserva admin supremo
+        where: { email: { not: "admin@lagoinha.com" } } 
       });
+    }
+
+    if (includeSpaces) {
+      backupData.spaces = await prisma.space.findMany();
+    }
+
+    if (includeReservations) {
+      backupData.reservations = await prisma.spaceReservation.findMany();
     }
 
     return NextResponse.json(backupData);
@@ -123,6 +133,46 @@ export async function POST(req: NextRequest) {
           });
         }
       }
+
+      // 4. Restaurar Espaços
+      if (importData.spaces && Array.isArray(importData.spaces)) {
+        for (const s of importData.spaces) {
+          await tx.space.upsert({
+            where: { id: s.id },
+            create: { id: s.id, name: s.name, description: s.description },
+            update: { name: s.name, description: s.description }
+          });
+        }
+      }
+
+      // 5. Restaurar Reservas
+      if (importData.reservations && Array.isArray(importData.reservations)) {
+        for (const r of importData.reservations) {
+          await tx.spaceReservation.upsert({
+            where: { id: r.id },
+            create: {
+              id: r.id,
+              spaceId: r.spaceId,
+              userId: r.userId,
+              date: r.date,
+              startTime: r.startTime,
+              endTime: r.endTime,
+              title: r.title,
+              status: r.status
+            },
+            update: {
+              spaceId: r.spaceId,
+              userId: r.userId,
+              date: r.date,
+              startTime: r.startTime,
+              endTime: r.endTime,
+              title: r.title,
+              status: r.status
+            }
+          });
+        }
+      }
+
     });
 
     return new NextResponse("Restauração Concluída", { status: 200 });

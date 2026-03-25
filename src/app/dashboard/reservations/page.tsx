@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import DashboardShell from "@/components/dashboard-shell";
-import { Plus, Check, X, Clock, MapPin, Calendar, CheckCircle2, XCircle, Bookmark } from "lucide-react";
+import { Plus, Check, X, Clock, MapPin, Calendar, CheckCircle2, XCircle, Bookmark, Edit2 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useSession } from "next-auth/react";
 
@@ -32,6 +32,7 @@ export default function ReservationsPage() {
   const [filter, setFilter] = useState(isAdmin ? "pending" : "mine");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     spaceId: "", date: "", startTime: "", endTime: "", title: ""
   });
@@ -60,6 +61,18 @@ export default function ReservationsPage() {
     if (currentUser) fetchData();
   }, [currentUser, filter]);
 
+  const openEdit = (r: Reservation) => {
+    setEditingId(r.id);
+    setFormData({
+      spaceId: r.spaceId,
+      date: r.date,
+      startTime: r.startTime,
+      endTime: r.endTime,
+      title: r.title
+    });
+    setIsModalOpen(true);
+  };
+
   const handleCreate = async () => {
     if (!formData.spaceId || !formData.date || !formData.startTime || !formData.endTime || !formData.title) {
       alert("Preencha todos os campos."); return;
@@ -69,8 +82,11 @@ export default function ReservationsPage() {
     }
 
     try {
-      const resp = await fetch("/api/reservations", {
-        method: "POST",
+      const url = editingId ? `/api/reservations/${editingId}` : "/api/reservations";
+      const method = editingId ? "PUT" : "POST";
+
+      const resp = await fetch(url, {
+        method,
         body: JSON.stringify(formData),
         headers: { "Content-Type": "application/json" }
       });
@@ -78,8 +94,9 @@ export default function ReservationsPage() {
       if (resp.ok) {
         fetchData();
         setIsModalOpen(false);
+        setEditingId(null);
         setFormData({spaceId: "", date: "", startTime: "", endTime: "", title: ""});
-        alert("Solicitação enviada com sucesso!");
+        alert(editingId ? "Reserva atualizada!" : "Solicitação enviada com sucesso!");
       } else {
         const text = await resp.text();
         try {
@@ -178,8 +195,13 @@ export default function ReservationsPage() {
                     {r.status === "APPROVED" && <span style={{background: "#dcfce7", color: "#16a34a", padding: "4px 8px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "bold"}}>Aprovada</span>}
                     {r.status === "REJECTED" && <span style={{background: "#fee2e2", color: "#dc2626", padding: "4px 8px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "bold"}}>Recusada</span>}
                   </td>
-                  <td>
+                   <td>
                     <div style={{display: "flex", gap: "8px"}}>
+                      {(r.userId === currentUser.id || isAdmin) && (
+                        <button onClick={() => openEdit(r)} className="btn-icon" title="Editar">
+                          <Edit2 size={18} />
+                        </button>
+                      )}
                       {isAdmin && filter === "pending" && (
                         <>
                           <button onClick={() => handleUpdateStatus(r.id, "APPROVED")} className="btn-icon" style={{color: "#16a34a", background: "#f0fdf4"}} title="Aprovar">
@@ -213,7 +235,7 @@ export default function ReservationsPage() {
         <Dialog.Portal>
           <Dialog.Overlay className="modal-overlay" />
           <Dialog.Content className="modal-content">
-            <Dialog.Title>Solicitar Uso de Espaço</Dialog.Title>
+            <Dialog.Title>{editingId ? "Editar Reserva" : "Solicitar Uso de Espaço"}</Dialog.Title>
             
             <div className="form-group">
               <label>Área da Igreja</label>
@@ -253,7 +275,7 @@ export default function ReservationsPage() {
                 onClick={handleCreate} 
                 disabled={!formData.spaceId || !formData.date || !formData.title || !formData.startTime || !formData.endTime}
               >
-                Enviar Solicitação
+                {editingId ? "Salvar Alterações" : "Enviar Solicitação"}
               </button>
             </div>
           </Dialog.Content>
