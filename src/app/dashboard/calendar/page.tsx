@@ -7,7 +7,7 @@ import CalendarPDFExport from "@/components/calendar-pdf-export";
 import { DayPicker } from "react-day-picker";
 import { ptBR } from "date-fns/locale";
 import { format, startOfMonth, endOfMonth, isSameDay, parseISO } from "date-fns";
-import { Plus, Filter, ChevronLeft, ChevronRight, Download, Edit, Trash2, X } from "lucide-react";
+import { Plus, Filter, ChevronLeft, ChevronRight, Download, Edit, Trash2, X, AlertOctagon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import "react-day-picker/dist/style.css";
@@ -39,11 +39,18 @@ export default function CalendarPage() {
   const [ministries, setMinistries] = useState<Ministry[]>([]);
   const [selectedMinistry, setSelectedMinistry] = useState<string>("");
   const [selectedDay, setSelectedDay] = useState<Date | undefined>(new Date());
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState<Event | null>(null);
-  const [isExporting, setIsExporting] = useState(false);
+  
+  const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
+  
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [exportMonth, setExportMonth] = useState<string>(format(new Date(), "yyyy-MM"));
+  const [exportYear, setExportYear] = useState<string>(new Date().getFullYear().toString());
+  const [exportMonths, setExportMonths] = useState<number[]>([new Date().getMonth()]);
+  const [exportingDates, setExportingDates] = useState<Date[]>([]);
+  const [isExporting, setIsExporting] = useState(false);
+  
   const [loading, setLoading] = useState(true);
 
   const isAdmin = user?.role !== "LEADER";
@@ -96,22 +103,13 @@ export default function CalendarPage() {
     }
   };
 
-  const handleDeleteEvent = async (event: Event) => {
-    let mode = "single";
-    if (event.isRecurring) {
-      if (confirm("Este evento faz parte de uma série. Você deseja excluir TODOS os eventos desta série? (Cancele para excluir apenas este dia)")) {
-        mode = "series";
-      } else {
-        if (!confirm("Tem certeza que deseja excluir este único evento?")) return;
-      }
-    } else {
-      if (!confirm("Tem certeza que deseja excluir o evento?")) return;
-    }
-
+  const executeDelete = async (mode: string) => {
+    if (!eventToDelete) return;
     try {
-      const resp = await fetch(`/api/events/${event.id}?mode=${mode}`, { method: "DELETE" });
+      const resp = await fetch(`/api/events/${eventToDelete.id}?mode=${mode}`, { method: "DELETE" });
       if (resp.ok) {
         fetchData();
+        setEventToDelete(null);
       } else {
         alert("Erro ao excluir evento");
       }
@@ -120,9 +118,23 @@ export default function CalendarPage() {
     }
   };
 
+  const handleExportSubmit = () => {
+    if (exportMonths.length === 0) {
+      alert("Selecione pelo menos um mês antes de exportar.");
+      return;
+    }
+    
+    // Sort chronologically
+    const sorted = [...exportMonths].sort((a,b) => a - b);
+    const dates = sorted.map(m => new Date(Date.UTC(parseInt(exportYear), m, 1, 12, 0, 0)));
+    
+    setExportingDates(dates);
+    setIsExportModalOpen(false);
+    setIsExporting(true);
+  };
+
   const selectedDayEvents = events.filter(e => isSameDay(parseISO(e.date), selectedDay || new Date()));
 
-  // Custom components for DayPicker to make it premium
   const modifiers = {
     hasEvent: events.map(e => parseISO(e.date))
   };
@@ -144,58 +156,123 @@ export default function CalendarPage() {
           <h1>Calendário de Eventos</h1>
           <p>Visualize e gerencie as escalas da igreja</p>
         </div>
-        {isAdmin && (
-          <button className="btn btn-primary" onClick={() => { setEventToEdit(null); setIsModalOpen(true); }}>
-            <Plus size={20} />
-            <span>Novo Evento</span>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          {isAdmin && (
+            <button className="btn btn-primary" onClick={() => { setEventToEdit(null); setIsModalOpen(true); }}>
+              <Plus size={20} />
+              <span>Novo Evento</span>
+            </button>
+          )}
+          <button className="btn btn-outline" onClick={() => setIsExportModalOpen(true)}>
+            <Download size={20} />
+            <span>Exportar PDF</span>
           </button>
-        )}
-        <button className="btn btn-outline" onClick={() => setIsExportModalOpen(true)}>
-          <Download size={20} />
-          <span>Exportar PDF</span>
-        </button>
+        </div>
       </header>
 
-      {/* Exporter UI Box */}
+      {/* ----------------- EXPORT PDF MODAL ----------------- */}
       <Dialog.Root open={isExportModalOpen} onOpenChange={setIsExportModalOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className="modal-overlay" />
-          <Dialog.Content className="modal-content" style={{maxWidth: "400px"}}>
+          <Dialog.Content className="modal-content" style={{maxWidth: "450px"}}>
             <div className="modal-header">
-              <Dialog.Title>Exportar Calendário</Dialog.Title>
+              <Dialog.Title>Exportar Grade do Calendário</Dialog.Title>
               <Dialog.Close asChild>
                 <button className="btn-close"><X size={20} /></button>
               </Dialog.Close>
             </div>
-            <div className="form-group" style={{marginBottom: "2rem"}}>
-              <label>Escolha o mês para exportar:</label>
+            
+            <div className="form-group" style={{marginBottom: "1.5rem"}}>
+              <label>Ano-Base:</label>
               <input 
-                type="month" 
+                type="number" 
                 className="input" 
-                value={exportMonth} 
-                onChange={(e) => setExportMonth(e.target.value)} 
-                style={{marginTop: "0.5rem"}}
+                value={exportYear} 
+                onChange={(e) => setExportYear(e.target.value)} 
+                min={2020} max={2030}
               />
             </div>
+
+            <div className="form-group" style={{marginBottom: "2rem"}}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                <label>Meses Desejados:</label>
+                <button type="button" onClick={() => setExportMonths([0,1,2,3,4,5,6,7,8,9,10,11])} style={{fontSize: "0.75rem", color: "var(--accent)"}}>Selecionar Ano Inteiro</button>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "0.5rem" }}>
+                {Array.from({length: 12}).map((_, i) => (
+                  <label key={i} style={{ 
+                    display: "flex", alignItems: "center", justifyContent: "center", 
+                    padding: "0.5rem", borderRadius: "8px", cursor: "pointer", 
+                    fontSize: "0.85rem", fontWeight: 600,
+                    background: exportMonths.includes(i) ? "#eff6ff" : "#f1f5f9", 
+                    border: `1px solid ${exportMonths.includes(i) ? "var(--accent)" : "transparent"}`,
+                    color: exportMonths.includes(i) ? "var(--accent)" : "var(--secondary)"
+                  }}>
+                     <input type="checkbox" checked={exportMonths.includes(i)} onChange={(e) => {
+                       if (e.target.checked) setExportMonths([...exportMonths, i]);
+                       else setExportMonths(exportMonths.filter(m => m !== i));
+                     }} style={{display: "none"}} />
+                     {format(new Date(2024, i, 1), "MMM", {locale: ptBR}).toUpperCase()}
+                  </label>
+                ))}
+              </div>
+            </div>
+
             <div className="modal-actions">
               <button type="button" className="btn btn-outline" onClick={() => setIsExportModalOpen(false)}>Cancelar</button>
-              <button type="button" className="btn btn-primary" onClick={() => {
-                setIsExportModalOpen(false);
-                setIsExporting(true);
-              }}>Gerar PDF</button>
+              <button type="button" className="btn btn-primary" onClick={handleExportSubmit}>Gerar Documento PDF</button>
             </div>
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
 
+      {/* ----------------- DELETE EVENT MODAL ----------------- */}
+      <Dialog.Root open={!!eventToDelete} onOpenChange={(open) => !open && setEventToDelete(null)}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="modal-overlay" />
+          <Dialog.Content className="modal-content" style={{maxWidth: "400px"}}>
+            <div className="modal-header">
+              <Dialog.Title style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <AlertOctagon color="#ef4444" />
+                Aviso de Exclusão
+              </Dialog.Title>
+            </div>
+            
+            <p style={{marginBottom: "1.5rem", color: "var(--secondary)"}}>
+              Você selecionou o evento <strong>{eventToDelete?.title}</strong>. Que tipo de deleção você deseja aplicar?
+            </p>
+
+            {eventToDelete?.isRecurring ? (
+               <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                 <div style={{ padding: "0.75rem", background: "#fef2f2", color: "#b91c1c", borderRadius: "8px", fontSize: "0.875rem", fontWeight: 500 }}>
+                   Este agendamento é parte de uma Recorrência em Série.
+                 </div>
+                 <button className="btn btn-outline" style={{borderColor: "#ef4444", color: "#ef4444"}} onClick={() => executeDelete("single")}>Excluir Apenas Esta Data</button>
+                 <button className="btn btn-primary" style={{background: "#ef4444", color: "white"}} onClick={() => executeDelete("series")}>Excluir Toda a Série (Este e Futuros)</button>
+               </div>
+            ) : (
+               <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                 <button className="btn btn-primary" style={{background: "#ef4444", color: "white"}} onClick={() => executeDelete("single")}>Confirmar Exclusão</button>
+               </div>
+            )}
+            
+            <div style={{marginTop: "1.5rem"}}>
+              <button type="button" className="btn btn-outline" style={{width: "100%"}} onClick={() => setEventToDelete(null)}>Cancelar e Voltar</button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
+      {/* ----------------- PDF EXPORT INVISIBLE WORKER ----------------- */}
       {isExporting && (
         <CalendarPDFExport 
           events={events} 
-          month={new Date(exportMonth + "-02T12:00:00Z")} 
+          months={exportingDates} 
           onComplete={() => setIsExporting(false)} 
         />
       )}
 
+      {/* ----------------- MAIN VIEW ----------------- */}
       <div className="calendar-layout">
         <aside className="calendar-sidebar">
           <div className="filter-card premium-card">
@@ -265,7 +342,7 @@ export default function CalendarPage() {
                   {isAdmin && (
                     <div className="event-actions" style={{ display: "flex", gap: "0.5rem" }}>
                       <button className="btn-icon edit" onClick={() => { setEventToEdit(event); setIsModalOpen(true); }}><Edit size={18} /></button>
-                      <button className="btn-icon delete" onClick={() => handleDeleteEvent(event)}><Trash2 size={18} /></button>
+                      <button className="btn-icon delete" onClick={() => setEventToDelete(event)}><Trash2 size={18} /></button>
                     </div>
                   )}
                 </div>

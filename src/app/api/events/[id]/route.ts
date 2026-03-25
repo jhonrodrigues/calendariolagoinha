@@ -26,9 +26,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     };
 
     if (editMode === "series" && baseEvent.groupId) {
-      // Find all future events in the series
+      // Find all future events in the series EXCEPT this current base one
       const futureEvents = await prisma.event.findMany({
-        where: { groupId: baseEvent.groupId, date: { gte: baseEvent.date } }
+        where: { groupId: baseEvent.groupId, date: { gt: baseEvent.date } }
       });
 
       // Update them one by one to ensure Ministry Relationships are synchronized
@@ -44,9 +44,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
           }
         }))
       );
-      
-      return NextResponse.json(futureEvents[0]);
-    }
+    } // Removed early exit to ensure the target event's date is still modified below!
 
     // Always update the specific single event and its relations
     const updatedSingle = await prisma.event.update({
