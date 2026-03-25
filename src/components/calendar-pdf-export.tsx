@@ -97,15 +97,17 @@ export default function CalendarPDFExport({ events, months, onComplete }: PDFExp
             color: "black",
             fontFamily: "'Inter', sans-serif"
           }}>
-            <div style={{ textAlign: align, marginBottom: "10mm", display: "flex", flexDirection: "column", alignItems: flexAlign }}>
+            <div style={{ marginBottom: "10mm", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: flexAlign, gap: "20px" }}>
               {platformSettings?.pdfLogo && (
-                  <img src={platformSettings.pdfLogo} style={{ maxHeight: "25mm", marginBottom: "3mm", objectFit: "contain" }} alt="Logo" />
+                  <img src={platformSettings.pdfLogo} style={{ maxHeight: "30mm", width: "auto", objectFit: "contain", flexShrink: 0 }} alt="Logo" />
               )}
-              <h1 style={{ margin: 0, fontSize: "24pt" }}>{platformSettings?.pdfTitle || "A G E N D A"}</h1>
-              <h2 style={{ margin: "2mm 0", fontSize: "18pt", textTransform: "uppercase" }}>
-                {format(month, "MMMM yyyy", { locale: ptBR })}
-              </h2>
-              <p style={{ color: "#666" }}>{platformSettings?.pdfSubtitle || "Igreja Batista Lagoinha"}</p>
+              <div style={{ textAlign: align as any }}>
+                <h1 style={{ margin: 0, fontSize: "24pt" }}>{platformSettings?.pdfTitle || "A G E N D A"}</h1>
+                <h2 style={{ margin: "2mm 0", fontSize: "16pt", textTransform: "uppercase" }}>
+                  {format(month, "MMMM yyyy", { locale: ptBR })}
+                </h2>
+                <p style={{ color: "#666", margin: 0, fontSize: "12pt" }}>{platformSettings?.pdfSubtitle || "Igreja Batista Lagoinha"}</p>
+              </div>
             </div>
 
             <div style={{ 
