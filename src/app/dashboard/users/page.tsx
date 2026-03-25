@@ -43,6 +43,8 @@ export default function UsersPage() {
 
   const [editData, setEditData] = useState({
     id: "",
+    email: "",
+    password: "",
     role: "LEADER",
     ministryId: ""
   });
@@ -100,6 +102,8 @@ export default function UsersPage() {
         method: "PUT",
         body: JSON.stringify({
           role: editData.role,
+          email: editData.email,
+          password: editData.password,
           ministryId: editData.ministryId
         }),
         headers: { "Content-Type": "application/json" },
@@ -141,6 +145,8 @@ export default function UsersPage() {
     }
     setEditData({
       id: user.id,
+      email: user.email,
+      password: "", // Always start empty for security
       role: user.role,
       ministryId: user.ministryId || ""
     });
@@ -311,6 +317,26 @@ export default function UsersPage() {
           <Dialog.Overlay className="modal-overlay" />
           <Dialog.Content className="modal-content">
             <Dialog.Title>Modificar Configurações do Usuário</Dialog.Title>
+            
+            <div className="form-group">
+              <label>E-mail (Login)</label>
+              <input
+                className="input"
+                value={editData.email}
+                onChange={(e) => setEditData({...editData, email: e.target.value})}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Nova Senha (Deixe em branco para manter)</label>
+              <input
+                type="password"
+                className="input"
+                placeholder="Alterar apenas se necessário..."
+                value={editData.password}
+                onChange={(e) => setEditData({...editData, password: e.target.value})}
+              />
+            </div>
             
             <div className="form-group">
               <label>Cargo & Privilégios</label>
