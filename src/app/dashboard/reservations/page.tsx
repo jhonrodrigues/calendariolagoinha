@@ -79,11 +79,20 @@ export default function ReservationsPage() {
         fetchData();
         setIsModalOpen(false);
         setFormData({spaceId: "", date: "", startTime: "", endTime: "", title: ""});
+        alert("Solicitação enviada com sucesso!");
       } else {
-        const err = await resp.json();
-        alert(err.error || "Erro ao solicitar espaço.");
+        const text = await resp.text();
+        try {
+          const err = JSON.parse(text);
+          alert(err.error || "Erro ao solicitar espaço.");
+        } catch (e) {
+          alert("Erro no servidor: " + text);
+        }
       }
-    } catch (err) {}
+    } catch (err: any) {
+      console.error("Erro na requisição:", err);
+      alert("Erro de conexão ou erro interno: " + err.message);
+    }
   };
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
@@ -239,7 +248,11 @@ export default function ReservationsPage() {
               <Dialog.Close asChild>
                 <button className="btn btn-outline">Cancelar</button>
               </Dialog.Close>
-              <button className="btn btn-primary" onClick={handleCreate} disabled={!formData.spaceId || !formData.date || !formData.title}>
+              <button 
+                className="btn btn-primary" 
+                onClick={handleCreate} 
+                disabled={!formData.spaceId || !formData.date || !formData.title || !formData.startTime || !formData.endTime}
+              >
                 Enviar Solicitação
               </button>
             </div>

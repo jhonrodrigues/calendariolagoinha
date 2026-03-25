@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { LayoutDashboard, Calendar, Users, Settings, LogOut, Database, Menu, X, Palette, Key, Bookmark, MapPin } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, Settings, LogOut, Database, Menu, X, Palette, Key, Bookmark, MapPin, FileUp } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import * as Dialog from "@radix-ui/react-dialog";
 
@@ -117,6 +117,10 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                   <Link href="/dashboard/settings" className="nav-item">
                     <Palette size={20} />
                     <span>Personalização</span>
+                  </Link>
+                  <Link href="/dashboard/admin/bulk-import" className="nav-item">
+                    <FileUp size={20} />
+                    <span>Importar Dados</span>
                   </Link>
                 </>
               )}
