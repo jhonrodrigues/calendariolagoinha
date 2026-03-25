@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { LayoutDashboard, Calendar, Users, Settings, LogOut, Database, Menu, X } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, Settings, LogOut, Database, Menu, X, Palette } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 
 interface DashboardShellProps {
@@ -14,13 +14,21 @@ export default function DashboardShell({ children }: DashboardShellProps) {
   const user = session?.user as any;
   const isAdmin = user?.role === "ADMIN_MASTER" || user?.role === "ADMIN";
 
+  const [platformSettings, setPlatformSettings] = useState<any>(null);
+
+  useEffect(() => {
+    fetch("/api/settings").then(r => r.json()).then(data => setPlatformSettings(data)).catch(() => {});
+  }, []);
+
   if (!user) return <div className="p-8">Carregando painel...</div>;
 
   return (
     <div className="dashboard-shell">
       {/* Mobile Header */}
       <div className="mobile-header">
-        <h2 style={{ color: 'white', margin: 0, fontSize: '1.25rem' }}>Lagoinha</h2>
+        <h2 style={{ color: 'white', margin: 0, fontSize: '1.25rem' }}>
+          {platformSettings?.siteTitle || "Lagoinha"}
+        </h2>
         <button className="btn-icon" onClick={() => setIsMobileOpen(!isMobileOpen)} style={{ color: 'white', background: 'rgba(255,255,255,0.1)' }}>
           {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -31,7 +39,11 @@ export default function DashboardShell({ children }: DashboardShellProps) {
 
       <aside className={`sidebar ${isMobileOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <h2>Lagoinha</h2>
+          {platformSettings?.siteLogo ? (
+            <img src={platformSettings.siteLogo} alt="Logo" style={{ maxHeight: "40px", width: "auto" }} />
+          ) : (
+            <h2>{platformSettings?.siteTitle || "Lagoinha"}</h2>
+          )}
         </div>
 
         
@@ -59,6 +71,10 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                   <Link href="/dashboard/backup" className="nav-item">
                     <Database size={20} />
                     <span>Backup</span>
+                  </Link>
+                  <Link href="/dashboard/settings" className="nav-item">
+                    <Palette size={20} />
+                    <span>Personalização</span>
                   </Link>
                 </>
               )}

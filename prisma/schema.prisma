@@ -56,3 +56,18 @@ model EventRequirement {
 
   @@unique([eventId, ministryId])
 }
+
+model PlatformSettings {
+  id              String @id @default("default")
+  siteTitle       String @default("Calendário de Eventos")
+  primaryColor    String @default("#1e3a8a")
+  accentColor     String @default("#f59e0b")
+  siteLogo        String? 
+  
+  pdfTitle        String @default("A G E N D A")
+  pdfSubtitle     String @default("Igreja Batista Lagoinha")
+  pdfLogo         String?
+  pdfTitleAlign   String @default("center") 
+  
+  updatedAt       DateTime @updatedAt
+}

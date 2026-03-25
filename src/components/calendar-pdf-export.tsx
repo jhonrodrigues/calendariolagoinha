@@ -21,11 +21,9 @@ interface PDFExportProps {
 }
 
 export default function CalendarPDFExport({ events, months, onComplete }: PDFExportProps) {
-  const [isExporting, setIsExporting] = useState(false);
+  const [platformSettings, setPlatformSettings] = useState<any>(null);
 
-  const generatePDF = async () => {
-    setIsExporting(true);
-    
+  const generatePDF = async (settings: any) => {
     const pdf = new jsPDF({
       orientation: "landscape",
       unit: "mm",
@@ -38,15 +36,15 @@ export default function CalendarPDFExport({ events, months, onComplete }: PDFExp
         const element = document.getElementById(`pdf-render-area-${month.getTime()}`);
         if (!element) continue;
 
-        // Use a high scale for better quality
-        const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-        const imgData = canvas.toDataURL("image/png");
+        // Use scale: 1.5 and JPEG compression to massively reduce PDF Weight (from 30MB+ to <1MB)
+        const canvas = await html2canvas(element, { scale: 1.5, useCORS: true });
+        const imgData = canvas.toDataURL("image/jpeg", 0.7);
         
         const imgProps = pdf.getImageProperties(imgData);
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+        pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
         
         if (i < months.length - 1) {
             pdf.addPage();
@@ -62,15 +60,20 @@ export default function CalendarPDFExport({ events, months, onComplete }: PDFExp
         console.error("PDF engine crash", err);
     }
 
-    setIsExporting(false);
     onComplete();
   };
 
   useEffect(() => {
-    // Adding a slight delay to ensure fonts and layout recalculations complete inside hidden viewport
-    setTimeout(() => {
-        generatePDF();
-    }, 500);
+    // Fetch user formatting data, then wait 500ms for DOM layout flush before snapshotting
+    fetch("/api/settings")
+      .then(r => r.json())
+      .then(data => {
+        setPlatformSettings(data);
+        setTimeout(() => generatePDF(data), 500);
+      })
+      .catch(() => {
+        setTimeout(() => generatePDF(null), 500);
+      });
   }, []);
 
   return (
@@ -83,6 +86,9 @@ export default function CalendarPDFExport({ events, months, onComplete }: PDFExp
         const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
         const numWeeks = Math.ceil(calendarDays.length / 7);
 
+        const align = platformSettings?.pdfTitleAlign || "center";
+        const flexAlign = align === "left" ? "flex-start" : align === "right" ? "flex-end" : "center";
+
         return (
           <div key={month.getTime()} id={`pdf-render-area-${month.getTime()}`} style={{ 
             width: "297mm", 
@@ -91,12 +97,15 @@ export default function CalendarPDFExport({ events, months, onComplete }: PDFExp
             color: "black",
             fontFamily: "'Inter', sans-serif"
           }}>
-            <div style={{ textAlign: "center", marginBottom: "10mm" }}>
-              <h1 style={{ margin: 0, fontSize: "24pt" }}>A G E N D A</h1>
+            <div style={{ textAlign: align, marginBottom: "10mm", display: "flex", flexDirection: "column", alignItems: flexAlign }}>
+              {platformSettings?.pdfLogo && (
+                  <img src={platformSettings.pdfLogo} style={{ maxHeight: "25mm", marginBottom: "3mm", objectFit: "contain" }} alt="Logo" />
+              )}
+              <h1 style={{ margin: 0, fontSize: "24pt" }}>{platformSettings?.pdfTitle || "A G E N D A"}</h1>
               <h2 style={{ margin: "2mm 0", fontSize: "18pt", textTransform: "uppercase" }}>
                 {format(month, "MMMM yyyy", { locale: ptBR })}
               </h2>
-              <p style={{ color: "#666" }}>Igreja Batista Lagoinha</p>
+              <p style={{ color: "#666" }}>{platformSettings?.pdfSubtitle || "Igreja Batista Lagoinha"}</p>
             </div>
 
             <div style={{ 
