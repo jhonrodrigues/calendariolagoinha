@@ -94,8 +94,13 @@ export default function DashboardShell({ children }: DashboardShellProps) {
             <Bookmark size={20} />
             <span>Reservas de Espaço</span>
           </Link>
+          <Link href="/dashboard/settings" className="nav-item">
+            <Settings size={20} />
+            <span>Configurações</span>
+          </Link>
           {isAdmin && (
             <>
+              <div style={{ height: "1px", background: "rgba(255,255,255,0.1)", margin: "0.5rem 0" }} />
               <Link href="/dashboard/ministries" className="nav-item">
                 <Users size={20} />
                 <span>Ministérios</span>
@@ -107,16 +112,12 @@ export default function DashboardShell({ children }: DashboardShellProps) {
               {user.role === "ADMIN_MASTER" && (
                 <>
                   <Link href="/dashboard/users" className="nav-item">
-                    <Settings size={20} />
+                    <Users size={20} />
                     <span>Equipe / Sistema</span>
                   </Link>
                   <Link href="/dashboard/backup" className="nav-item">
                     <Database size={20} />
                     <span>Backup</span>
-                  </Link>
-                  <Link href="/dashboard/settings" className="nav-item">
-                    <Palette size={20} />
-                    <span>Personalização</span>
                   </Link>
                   <Link href="/dashboard/admin/bulk-import" className="nav-item">
                     <FileUp size={20} />

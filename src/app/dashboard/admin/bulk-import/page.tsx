@@ -79,7 +79,7 @@ export default function BulkImportPage() {
             >
               <option value="ministry">Ministérios (Coluna: name)</option>
               <option value="space">Espaços Físicos (Colunas: name, description)</option>
-              <option value="event">Eventos (Colunas: title, date, startTime, endTime, responsible...)</option>
+              <option value="event">Eventos (Colunas: title, date, startTime, endTime, local, responsible...)</option>
             </select>
           </div>
 
@@ -91,7 +91,7 @@ export default function BulkImportPage() {
               placeholder={
                 importType === "ministry" ? "name\nLouvor\nKids\nMissões" :
                 importType === "space" ? "name,description\nAuditório,Capacidade 500\nSala 01,Com ar condicionado" :
-                "title,date,startTime,endTime,responsible\nCulto Ágape,2024-04-01,19:00,21:00,Pr. João"
+                "title,date,startTime,endTime,local,responsible\nCulto Ágape,2024-04-01,19:00,21:00,Auditório Principal,Pr. João"
               }
               value={rawData}
               onChange={(e) => setRawData(e.target.value)}

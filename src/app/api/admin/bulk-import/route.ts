@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
             date: new Date(item.date),
             startTime: item.startTime || null,
             endTime: item.endTime || null,
-            location: item.location || "",
+            location: item.location || item.local || "",
             responsible: item.responsible || "",
             minister: item.minister || "",
             worship: item.worship || "",

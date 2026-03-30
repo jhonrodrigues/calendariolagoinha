@@ -4,6 +4,7 @@ export const revalidate = 0;
 import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
 import { addWeeks, addMonths, startOfDay, parseISO } from "date-fns";
+import { syncEventToGoogle } from "@/lib/google-calendar";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -48,18 +49,14 @@ export async function POST(req: NextRequest) {
       location, responsible, minister, worship, ministryIds, recurrence 
     } = body;
 
-    // Anchor the date to Noon UTC to prevent timezone offsets from shifting the day backwards
     const baseDateString = date.includes("T") ? date.split("T")[0] : date;
     const baseDate = new Date(`${baseDateString}T12:00:00Z`);
     const eventsToCreate = [];
-    
-    // Generate a group ID for recurring events to allow series editing
     const isRecurringSeries = recurrence && recurrence.type !== "none";
     const groupId = isRecurringSeries ? Math.random().toString(36).substring(2, 10) : null;
 
-    // Recurrence logic: multiplication of events
     if (isRecurringSeries) {
-      const count = recurrence.count || 10; // Default to 10 instances if not specified
+      const count = recurrence.count || 10;
       for (let i = 0; i < count; i++) {
         let eventDate = baseDate;
         if (recurrence.type === "weekly") {
@@ -99,8 +96,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Since we want to associate ministries, we need to do this carefully.
-    // Prisma createMany doesn't return created IDs for SQLite, so we'll do them in a loop or transaction.
     const createdEvents = await prisma.$transaction(
       eventsToCreate.map(event => prisma.event.create({
         data: {
@@ -113,6 +108,14 @@ export async function POST(req: NextRequest) {
         }
       }))
     );
+
+    // Sync to Google Calendar
+    const userId = (session.user as any).id;
+    if (userId) {
+      await Promise.all(
+        createdEvents.map(event => syncEventToGoogle(event.id, userId))
+      );
+    }
 
     return NextResponse.json(createdEvents);
   } catch (error) {
