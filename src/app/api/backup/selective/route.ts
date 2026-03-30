@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
               isRecurring: e.isRecurring,
               recurrenceRule: e.recurrenceRule,
               requirements: {
-                create: e.requirements.map((req: any) => ({
+                create: (e.requirements || []).map((req: any) => ({
                   ministryId: req.ministryId
                 }))
               }

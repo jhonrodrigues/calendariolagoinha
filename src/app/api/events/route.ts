@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
         data: {
           ...event,
           requirements: {
-            create: ministryIds.map((mId: string) => ({
+            create: (ministryIds || []).map((mId: string) => ({
               ministryId: mId
             }))
           }
