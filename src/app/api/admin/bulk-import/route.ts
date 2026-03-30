@@ -39,11 +39,14 @@ export async function POST(req: NextRequest) {
     } else if (type === "event") {
       for (const item of items) {
         if (!item.title || !item.date) continue;
+        const baseDateString = item.date.includes("T") ? item.date.split("T")[0] : item.date;
+        const normalizedDate = new Date(`${baseDateString}T12:00:00Z`);
+        
         await prisma.event.create({
           data: {
             title: item.title,
             description: item.description || "",
-            date: new Date(item.date),
+            date: normalizedDate,
             startTime: item.startTime || null,
             endTime: item.endTime || null,
             location: item.location || item.local || "",
