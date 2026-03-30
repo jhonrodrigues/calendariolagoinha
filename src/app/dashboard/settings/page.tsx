@@ -12,7 +12,6 @@ export default function SettingsPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [googleStatus, setGoogleStatus] = useState<{ connected: boolean, email?: string | null }>({ connected: false });
   
   const [settings, setSettings] = useState({
     siteTitle: "Calendário de Eventos",
@@ -30,13 +29,8 @@ export default function SettingsPage() {
       // Fetch platform settings (only for admin view, but useful for context)
       fetch("/api/settings").then(r => r.json()).then(data => {
         if (data) setSettings(data);
+        setLoading(false);
       });
-
-      // Fetch Google connection status
-      fetch("/api/auth/google/status")
-        .then(r => r.json())
-        .then(data => setGoogleStatus(data))
-        .finally(() => setLoading(false));
     }
   }, [user]);
 
@@ -77,9 +71,6 @@ export default function SettingsPage() {
     }
   };
 
-  const connectGoogle = () => {
-    signIn("google", { callbackUrl: "/dashboard/settings" });
-  };
 
   if (loading) return <div className="p-8">Carregando configurações...</div>;
 
@@ -98,44 +89,7 @@ export default function SettingsPage() {
         )}
       </header>
 
-      <div style={{ display: "grid", gridTemplateColumns: isAdminMaster ? "1fr 1fr" : "1fr", gap: "2rem", marginTop: "2rem" }}>
-        
-        {/* ---- GOOGLE CALENDAR SYNC (ALL USERS) ---- */}
-        <div className="premium-card">
-          <h2 style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
-            <CalendarIcon size={20} color="var(--accent)" /> Sincronização com Google Calendar
-          </h2>
-          <p style={{ fontSize: "0.9rem", color: "var(--secondary)", marginBottom: "1.5rem" }}>
-            Conecte sua agenda do Google para que os novos eventos do sistema sejam criados automaticamente no seu calendário pessoal.
-          </p>
-
-          {googleStatus.connected ? (
-            <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "1rem", borderRadius: "8px", display: "flex", alignItems: "center", gap: "1rem" }}>
-              <CheckCircle2 size={24} color="#16a34a" />
-              <div>
-                <p style={{ fontWeight: "bold", color: "#166534", margin: 0 }}>Conectado!</p>
-                <p style={{ fontSize: "0.85rem", color: "#166534", margin: 0 }}>
-                  Os eventos serão sincronizados com sua conta Google.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div style={{ border: "1px solid #e2e8f0", padding: "1.5rem", borderRadius: "12px", textAlign: "center" }}>
-              <button 
-                className="btn btn-outline" 
-                style={{ width: "100%", justifyContent: "center", gap: "0.75rem", padding: "0.75rem" }}
-                onClick={connectGoogle}
-              >
-                <img src="https://authjs.dev/img/providers/google.svg" width={20} height={20} alt="Google" />
-                <span>Conectar com Google Calendar</span>
-              </button>
-              <p style={{ fontSize: "0.75rem", color: "var(--secondary)", marginTop: "1rem" }}>
-                <AlertCircle size={12} style={{ display: "inline", marginRight: "4px" }} />
-                Você precisará autorizar o acesso à sua agenda na próxima tela.
-              </p>
-            </div>
-          )}
-        </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "2rem", marginTop: "2rem" }}>
 
         {/* ---- ADMIN BRANDING (ONLY ADMIN_MASTER) ---- */}
         {isAdminMaster && (

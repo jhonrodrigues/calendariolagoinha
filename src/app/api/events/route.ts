@@ -4,7 +4,6 @@ export const revalidate = 0;
 import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
 import { addWeeks, addMonths, startOfDay, parseISO } from "date-fns";
-import { syncEventToGoogle } from "@/lib/google-calendar";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -109,13 +108,6 @@ export async function POST(req: NextRequest) {
       }))
     );
 
-    // Sync to Google Calendar
-    const userId = (session.user as any).id;
-    if (userId) {
-      await Promise.all(
-        createdEvents.map(event => syncEventToGoogle(event.id, userId))
-      );
-    }
 
     return NextResponse.json(createdEvents);
   } catch (error) {

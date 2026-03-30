@@ -10,7 +10,7 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma/
 
-RUN npm install
+RUN npm ci
 RUN npx prisma@5.22.0 generate --schema=prisma/schema.prisma
 
 # Rebuild stage
