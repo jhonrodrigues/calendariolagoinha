@@ -44,15 +44,15 @@ export async function POST(req: NextRequest) {
         
         await prisma.event.create({
           data: {
-            title: item.title,
-            description: item.description || "",
+            title: item.title || item.titulo,
+            description: item.description || item.descricao || "",
             date: normalizedDate,
-            startTime: item.startTime || null,
-            endTime: item.endTime || null,
+            startTime: item.startTime || item.starttime || null,
+            endTime: item.endTime || item.endtime || null,
             location: item.location || item.local || "",
-            responsible: item.responsible || "",
-            minister: item.minister || "",
-            worship: item.worship || "",
+            responsible: item.responsible || item.responsavel || "",
+            minister: item.minister || item.ministrante || "",
+            worship: item.worship || item.louvor || "",
             isRecurring: false
           }
         });
