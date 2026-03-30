@@ -39,7 +39,9 @@ export async function GET(req: NextRequest) {
     }
 
     if (includeReservations) {
-      backupData.reservations = await prisma.spaceReservation.findMany();
+      backupData.reservations = await prisma.spaceReservation.findMany({
+        include: { user: { select: { email: true } } }
+      });
     }
 
     return NextResponse.json(backupData);
@@ -147,13 +149,32 @@ export async function POST(req: NextRequest) {
 
       // 5. Restaurar Reservas
       if (importData.reservations && Array.isArray(importData.reservations)) {
+        // Carregar mapeamento de usuários por email para garantir IDs corretos
+        const allUsers = await tx.user.findMany({ select: { id: true, email: true } });
+        const userMap = new Map(allUsers.map(u => [u.email, u.id]));
+        
         for (const r of importData.reservations) {
+          // Tentar encontrar o ID do usuário no sistema atual se tiver o email no backup
+          let targetUserId = r.userId;
+          if (r.user?.email && userMap.has(r.user.email)) {
+            targetUserId = userMap.get(r.user.email);
+          }
+
+          // Verificar se o usuário existe
+          const userExists = await tx.user.findUnique({ where: { id: targetUserId } });
+          const spaceExists = await tx.space.findUnique({ where: { id: r.spaceId } });
+
+          if (!userExists || !spaceExists) {
+            console.warn(`Pulando reserva ${r.id} pois o usuário ou espaço não existe.`);
+            continue;
+          }
+
           await tx.spaceReservation.upsert({
             where: { id: r.id },
             create: {
               id: r.id,
               spaceId: r.spaceId,
-              userId: r.userId,
+              userId: targetUserId,
               date: r.date,
               startTime: r.startTime,
               endTime: r.endTime,
@@ -162,7 +183,7 @@ export async function POST(req: NextRequest) {
             },
             update: {
               spaceId: r.spaceId,
-              userId: r.userId,
+              userId: targetUserId,
               date: r.date,
               startTime: r.startTime,
               endTime: r.endTime,
